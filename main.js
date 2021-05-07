@@ -6,6 +6,20 @@ Array.prototype.pick = function() {
 let expectedState = {};
 let actualState = {};
 
+const d3Category10 = [
+  '#1f77b4',
+  '#ff7f0e',
+  '#2ca02c',
+  '#d62728',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  '#17becf',
+]
+  
+
 function populatePanels(expectedPanel, actualPanel, n) {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const populatePanel = panel => {
@@ -14,8 +28,9 @@ function populatePanels(expectedPanel, actualPanel, n) {
     }
     for (let i = 0; i < n; ++i) {
       const element = document.createElement('div');
-      element.innerText = alphabet[i];
+      element.innerText = 'Steven';//alphabet[i];
       element.classList += 'tile';
+      element.style = `background-color: ${d3Category10[i]}`;
       panel.appendChild(element);
     }
   }
@@ -36,6 +51,13 @@ function initialize() {
   const alignContentInput = document.getElementById('align-content-input');
   const statusLabel = document.getElementById('status');
 
+  const score = document.getElementById('score')
+  const time = document.getElementById('time')
+  let startTime = new Date()
+  const coin = document.getElementById('coin')
+  const stageClear = document.getElementById('stage-clear')
+  const pauseSound = document.getElementById('pause-sound')
+
   const includeReverseCheckbox = document.getElementById('include-reverse-checkbox');
   const includeWrapCheckbox = document.getElementById('include-wrap-checkbox');
 
@@ -45,7 +67,7 @@ function initialize() {
   const flexDirectionWithoutReverseOptions = ['row', 'column'];
   const flexDirectionWithReverseOptions = ['row', 'column', 'row-reverse', 'column-reverse'];
   const justifyContentOptions = ['flex-start', 'flex-end', 'center', 'space-between', 'space-around', 'space-evenly'];
-  const alignItemsOptions = ['flex-start', 'flex-end', 'center', 'stretch', 'baseline'];
+  const alignItemsOptions = ['flex-start', 'flex-end', 'center', 'stretch', 'baseline', ];
   const flexWrapOptions = ['nowrap', 'wrap', 'wrap-reverse'];
   const alignContentOptions = ['flex-start', 'flex-end', 'center', 'stretch', 'space-between', 'space-around', 'space-evenly'];
 
@@ -85,11 +107,15 @@ function initialize() {
   reload('none', 4);
 
   const randomize = () => {
+    // startTime = new Date()
     expectedState = {
       'justify-content': justifyContentOptions.pick(),
       'align-items': alignItemsOptions.pick(),
       'flex-direction': flexDirectionOptions.pick(),
     };
+    if (expectedState['flex-direction'] === 'column' && expectedState['align-items'] === 'baseline') {
+      expectedState['align-items'] = alignItemsOptions.slice(1) //omit baseline for column
+    }
 
     if (includeWrapCheckbox.checked) {
       expectedState['flex-wrap'] = flexWrapOptions.pick();
@@ -141,6 +167,11 @@ function initialize() {
         actualPanel.style[property] = prefix + actualState[property];
       }
       statusLabel.innerHTML = isRight() ? '&#128077;&#127997;' : '&#128078;&#127997;';
+      
+      console.log(expectedState[input.id.substr(0, input.id.length - '-input'.length)], input.value);
+      if (expectedState[input.id.substr(0, input.id.length - '-input'.length)] === input.value) {
+        coin.play();
+      }
     });
   };
 
@@ -150,22 +181,77 @@ function initialize() {
   registerListener(flexWrapInput, 'flex-wrap', flexWrapOptions);
   registerListener(alignContentInput, 'align-content', alignContentOptions);
 
-  alignItemsInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && isRight()) {
-      randomize();
-      flexDirectionInput.focus();
+  document.querySelectorAll('input[type="text"]').forEach((elem) => {
+    elem.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && isRight()) {
+        splits.push(time.innerHTML)
+        score.innerText = splits.length
+        stageClear.play();
+        randomize();
+        flexDirectionInput.select();
+      }
+    });
+    elem.addEventListener('blur', (e) => {
+      console.log('blur', e)
+      console.log(expectedState[e.target.id.substr(0, e.target.id.length - '-input'.length)], e.target.value);
+      if (expectedState[e.target.id.substr(0, e.target.id.length - '-input'.length)] === e.target.value) {
+        coin.play();
+      }
+    });
+  });
+
+  randomize();
+  flexDirectionInput.select();
+  
+  const splits = []
+  let timerRunning = true;
+  let elapsedPaused = 0
+  
+  setInterval(() => {
+    const delta = new Date() - startTime - elapsedPaused;
+    const deltaDisplay = new Date(delta).toLocaleString('en-US', {
+      minute: '2-digit', 
+      second: '2-digit', 
+    })
+    if (timerRunning) {
+      time.innerText = `${deltaDisplay}`
+    }
+  }, 1000);
+
+  let pauseBegan = 0;
+
+  document.body.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      pauseSound.play();
+      document.body.classList.toggle('paused')
+      if (document.body.classList.contains('paused')) {
+        timerRunning = false;
+        // clearInterval(timer);
+        pauseBegan = new Date();
+        pauseSound.play();
+      } else {
+        timerRunning = true;
+        elapsedPaused += (new Date() - pauseBegan)
+        pauseBegan = 0;
+      }
     }
   });
 }
 
 function isRight() {
-  console.log("expectedState:", expectedState);
-  console.log("actualState:", actualState);
-  return expectedState['flex-direction'] === actualState['flex-direction'] &&
-         expectedState['justify-content'] === actualState['justify-content'] &&
-         expectedState['align-items'] === actualState['align-items'] &&
-         expectedState['flex-wrap'] === actualState['flex-wrap'] &&
-         expectedState['align-content'] === actualState['align-content'];
+  // console.log("expectedState:", expectedState);
+  // console.log("actualState:", actualState);
+  const expectedPositions = Array.from(document.querySelectorAll('#expected div'));
+  const actualPositions = Array.from(document.querySelectorAll('#actual div'));
+  return expectedPositions
+    .map((elem, i) => elem.offsetLeft === actualPositions[i].offsetLeft && elem.offsetTop === actualPositions[i].offsetTop)
+    .reduce((acc, cur) => acc && cur)
+  // console.log(actual, Array.from(actualPositions).map((elem) => [elem.offsetLeft, elem.offsetTop]))
+  // return expectedState['flex-direction'] === actualState['flex-direction'] &&
+  //        expectedState['justify-content'] === actualState['justify-content'] &&
+  //        expectedState['align-items'] === actualState['align-items'] &&
+  //        expectedState['flex-wrap'] === actualState['flex-wrap'] &&
+  //        expectedState['align-content'] === actualState['align-content'];
 }
 
 window.addEventListener('load', initialize);

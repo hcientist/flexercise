@@ -1,50 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Flexercise</title>
+  <title>Flexercise the Stevens</title>
   <link rel="stylesheet" href="style.css">
   <script src="main.js"></script>
 </head>
 <body>
+  <audio src="smb_coin.wav" preload="auto" id="coin"></audio>
+  <audio src="smb_stage_clear-short.wav" preload="auto" id="stage-clear"></audio>
+  <audio src="smb_pause.wav" preload="auto" id="pause-sound"></audio>
   <div class="root">
-    <div class="centered-container">
-      <div id="panels-root">
-        <div class="panel-sizer">
-          <div id="expected" class="panel"></div>
-        </div>
-        <div id="separator"></div>
-        <div class="panel-sizer">
-          <div id="actual" class="panel"></div>
-        </div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button id="randomize-button" type="button">Randomize</button>
-          <label>include reverse</label>
-          <input id="include-reverse-checkbox" type="checkbox">
-          <label>include wrap</label>
-          <input id="include-wrap-checkbox" type="checkbox">
-        </div>
-
-        <div class="toolbar-right">
-          <label for="flex-direction-input">flex-direction</label>
-          <input id="flex-direction-input" type="text">
-
-          <label for="flex-wrap-input" id="flex-wrap-label">flex-wrap</label>
-          <input id="flex-wrap-input" type="text">
-
-          <label for="align-content-input" id="align-content-label">align-content</label>
-          <input id="align-content-input" type="text">
-
-          <label for="justify-content-input">justify-content</label>
-          <input id="justify-content-input" type="text">
-
-          <label for="align-items-input">align-items</label>
-          <input id="align-items-input" type="text">
-        </div>
-        <div id="status">&#128075;&#127997;</div>
+    <div class="titles" id="left">
+      <div>
+        <h1>Flexercise</h1>
       </div>
     </div>
+    <div class="titles" id="right">
+      <div>
+        <h2>the&nbsp;Stevens!</h2>
+      </div>
+    </div>
+    <div class="centered-container">
+      <div id="scoreboard">
+        <div id="time">00:00</div>
+        <div id="score">0</div>
+      </div>
+      <div id="paused">
+        PAUSED
+      </div>
+      <div id="play-area">
+        <div id="panels-root">
+          <div class="panel-sizer">
+            <div id="expected" class="panel"></div>
+          </div>
+          <div id="separator"></div>
+          <div class="panel-sizer">
+            <div id="actual" class="panel"></div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button id="randomize-button" type="button">Randomize</button>
+            <label>include reverse</label>
+            <input id="include-reverse-checkbox" type="checkbox">
+            <label>include wrap</label>
+            <input id="include-wrap-checkbox" type="checkbox">
+          </div>
+
+          <div class="toolbar-right">
+            <label for="flex-direction-input">flex-direction</label>
+            <input id="flex-direction-input" type="text">
+
+            <label for="flex-wrap-input" id="flex-wrap-label">flex-wrap</label>
+            <input id="flex-wrap-input" type="text">
+
+            <label for="align-content-input" id="align-content-label">align-content</label>
+            <input id="align-content-input" type="text">
+
+            <label for="justify-content-input">justify-content</label>
+            <input id="justify-content-input" type="text">
+
+            <label for="align-items-input">align-items</label>
+            <input id="align-items-input" type="text">
+          </div>
+          <div id="status">&#128075;&#127997;</div>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </body>
 </html>
