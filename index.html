@@ -6,10 +6,16 @@
   <script src="main.js"></script>
 </head>
 <body>
-  <audio src="smb_coin.wav" preload="auto" id="coin"></audio>
-  <audio src="smb_stage_clear-short.wav" preload="auto" id="stage-clear"></audio>
-  <audio src="smb_pause.wav" preload="auto" id="pause-sound"></audio>
-  <div class="root">
+  <audio src="smb_coin.wav" id="coin"></audio>
+  <audio src="smb_stage_clear-short.wav" id="stage-clear"></audio>
+  <audio src="smb_pause.wav" id="pause-sound"></audio>
+  <div id="start-screen">
+    <div>
+      <p>Y'all ready for this?</p>
+      <button autofocus>GO! ▶</button>
+    </div>
+  </div>
+  <div class="root hidden">
     <div class="titles" id="left">
       <div>
         <h1>Flexercise</h1>
@@ -23,6 +29,7 @@
     <div class="centered-container">
       <div id="scoreboard">
         <div id="time">00:00</div>
+        <div id="points">0</div>
         <div id="score">0</div>
       </div>
       <div id="paused">

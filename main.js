@@ -52,8 +52,15 @@ function initialize() {
   const statusLabel = document.getElementById('status');
 
   const score = document.getElementById('score')
+  const pointsPending = document.getElementById('points')
   const time = document.getElementById('time')
   let startTime = new Date()
+  let delta = 0
+  let deltaDisplay = 0
+  let currentDiff = 0
+  const splits = []
+  const totalScore = () => splits.map((item) => item.score).reduce((a, b) => a + b);
+
   const coin = document.getElementById('coin')
   const stageClear = document.getElementById('stage-clear')
   const pauseSound = document.getElementById('pause-sound')
@@ -138,6 +145,7 @@ function initialize() {
 
     panelsRoot.style['flex-direction'] = expectedState['flex-direction'].startsWith('row') ? 'column' : 'row';
     statusLabel.innerHTML = isRight() ? '&#128077;&#127997;' : '&#128078;&#127997;';
+    currentDiff = Array.from(expectedPanel.style).map((item) => actualPanel.style[item] === expectedPanel.style[item] ? 0 : 1).reduce((a,b) => a+b)
   };
 
   randomizeButton.addEventListener('click', randomize);
@@ -168,7 +176,6 @@ function initialize() {
       }
       statusLabel.innerHTML = isRight() ? '&#128077;&#127997;' : '&#128078;&#127997;';
       
-      console.log(expectedState[input.id.substr(0, input.id.length - '-input'.length)], input.value);
       if (expectedState[input.id.substr(0, input.id.length - '-input'.length)] === input.value) {
         coin.play();
       }
@@ -184,16 +191,16 @@ function initialize() {
   document.querySelectorAll('input[type="text"]').forEach((elem) => {
     elem.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && isRight()) {
-        splits.push(time.innerHTML)
-        score.innerText = splits.length
+        const prev = splits.length > 0 ? splits[splits.length-1].t : 0
+        splits.push({ t: delta - prev, score: scoreIt(delta-prev, currentDiff)})
+
+        score.innerText = totalScore()
         stageClear.play();
         randomize();
         flexDirectionInput.select();
       }
     });
     elem.addEventListener('blur', (e) => {
-      console.log('blur', e)
-      console.log(expectedState[e.target.id.substr(0, e.target.id.length - '-input'.length)], e.target.value);
       if (expectedState[e.target.id.substr(0, e.target.id.length - '-input'.length)] === e.target.value) {
         coin.play();
       }
@@ -203,20 +210,26 @@ function initialize() {
   randomize();
   flexDirectionInput.select();
   
-  const splits = []
+  
   let timerRunning = true;
   let elapsedPaused = 0
-  
+  delta = new Date() - startTime - elapsedPaused;
+  deltaDisplay = new Date(delta).toLocaleString('en-US', {
+    minute: '2-digit',
+    second: '2-digit',
+  })
   setInterval(() => {
-    const delta = new Date() - startTime - elapsedPaused;
-    const deltaDisplay = new Date(delta).toLocaleString('en-US', {
+    delta = new Date() - startTime - elapsedPaused;
+    deltaDisplay = new Date(delta).toLocaleString('en-US', {
       minute: '2-digit', 
       second: '2-digit', 
     })
     if (timerRunning) {
       time.innerText = `${deltaDisplay}`
+      console.log(delta)
+      pointsPending.innerText = scoreIt(delta - splits[splits.length-1].t, currentDiff)
     }
-  }, 1000);
+  }, 100);
 
   let pauseBegan = 0;
 
@@ -238,15 +251,14 @@ function initialize() {
   });
 }
 
+const scoreIt = (t, diff) => Math.max(1, diff * 10000 - t);
+
 function isRight() {
-  // console.log("expectedState:", expectedState);
-  // console.log("actualState:", actualState);
   const expectedPositions = Array.from(document.querySelectorAll('#expected div'));
   const actualPositions = Array.from(document.querySelectorAll('#actual div'));
   return expectedPositions
     .map((elem, i) => elem.offsetLeft === actualPositions[i].offsetLeft && elem.offsetTop === actualPositions[i].offsetTop)
     .reduce((acc, cur) => acc && cur)
-  // console.log(actual, Array.from(actualPositions).map((elem) => [elem.offsetLeft, elem.offsetTop]))
   // return expectedState['flex-direction'] === actualState['flex-direction'] &&
   //        expectedState['justify-content'] === actualState['justify-content'] &&
   //        expectedState['align-items'] === actualState['align-items'] &&
@@ -254,4 +266,19 @@ function isRight() {
   //        expectedState['align-content'] === actualState['align-content'];
 }
 
-window.addEventListener('load', initialize);
+const preStart = () => {
+  const startButton = document.querySelectorAll(`#start-screen button`)[0];
+  const begin = () => {
+    document.getElementById('start-screen').classList.add('hidden')
+    document.querySelectorAll('.root').forEach((elem)=> elem.classList.remove('hidden'))
+    initialize();
+  }
+  startButton.addEventListener('click', begin)
+  startButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      begin();
+    }
+  })
+};
+
+window.addEventListener('load', preStart);
